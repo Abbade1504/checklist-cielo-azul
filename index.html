@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Check list Cielo Azul</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#002576">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Check list">
+<style>
+  :root { --azul:#002576; --azul2:#0d3a9b; --naranja:#f44800; --naranja2:#ff7a1a; --verde:#1e7b34; --verdeBg:#e3f4e6; --rojo:#b3261e; --rojoBg:#fbe4e2; --gris:#5f6368; --borde:#d0d5dd; --fondo:#f2f4f7; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family: Arial, Helvetica, sans-serif; background:var(--fondo); color:#1d1d1f; font-size:17px; }
+  header { background:#fff; color:var(--azul); padding:10px 14px 0; position:sticky; top:0; z-index:5; box-shadow:0 2px 6px rgba(0,37,118,.10); }
+  .cab { display:flex; align-items:center; gap:12px; max-width:640px; margin:0 auto; }
+  .logo { height:46px; width:auto; display:block; flex:none; }
+  header h1 { margin:0; font-size:18px; color:var(--azul); line-height:1.15; }
+  header .sub { font-size:12.5px; color:var(--gris); margin-top:3px; }
+  .barra { height:5px; background:#e6eaf2; margin:10px -14px 0; overflow:hidden; }
+  .barra i { display:block; height:100%; width:0; background:linear-gradient(90deg,var(--naranja),var(--naranja2)); transition:width .2s; }
+  main { padding:12px; max-width:640px; margin:0 auto 110px; }
+  .card { background:#fff; border-radius:12px; padding:14px; margin-bottom:12px; box-shadow:0 1px 2px rgba(0,0,0,.08); }
+  .sec { font-weight:bold; color:#fff; background:var(--azul); border-left:6px solid var(--naranja); border-radius:8px; padding:9px 12px; margin:18px 0 8px; font-size:15px; letter-spacing:.4px; }
+  label.campo { display:block; font-weight:bold; margin:10px 0 6px; color:var(--azul); }
+  label.campo:first-child { margin-top:0; }
+  select, input[type=text], input[type=number], textarea { width:100%; font-size:17px; padding:12px; border:1.5px solid var(--borde); border-radius:10px; background:#fff; font-family:inherit; color:#1d1d1f; }
+  select:focus, input:focus, textarea:focus { outline:none; border-color:var(--azul); box-shadow:0 0 0 3px rgba(0,37,118,.15); }
+  textarea { min-height:90px; }
+  .item { padding:12px 0; border-bottom:1px solid #eef0f3; }
+  .item:last-child { border-bottom:0; }
+  .item .t { font-weight:bold; }
+  .item .a { font-size:13px; color:var(--gris); margin-top:2px; }
+  .ops { display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
+  .ops button { flex:1 1 0; min-width:90px; min-height:48px; font-size:16px; border:1.5px solid var(--borde); background:#fff; border-radius:10px; color:#1d1d1f; font-family:inherit; }
+  .ops button.sel.bien { background:var(--verdeBg); border-color:var(--verde); color:var(--verde); font-weight:bold; }
+  .ops button.sel.mal  { background:var(--rojoBg); border-color:var(--rojo); color:var(--rojo); font-weight:bold; }
+  .ops button.sel.azul { background:#e8eefb; border-color:var(--azul); color:var(--azul); font-weight:bold; }
+  .ops button.sel.na   { background:#eceff3; border-color:var(--gris); color:#333; font-weight:bold; }
+  .item.falta .t { color:var(--rojo); }
+  .urg button { display:block; width:100%; text-align:left; min-height:52px; padding:10px 14px; margin-top:8px; font-size:16px; border:1.5px solid var(--borde); background:#fff; border-radius:10px; font-family:inherit; color:#1d1d1f; }
+  .urg button.sel { border-color:var(--azul); background:#e8eefb; font-weight:bold; }
+  .fotos { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+  .fotos .f { position:relative; width:88px; height:88px; border-radius:10px; overflow:hidden; background:#ddd; }
+  .fotos .f img { width:100%; height:100%; object-fit:cover; }
+  .fotos .f button { position:absolute; top:3px; right:3px; width:28px; height:28px; border-radius:50%; border:0; background:rgba(0,0,0,.65); color:#fff; font-size:16px; }
+  .btnFoto { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:52px; border:2px dashed var(--azul2); color:var(--azul2); background:#f5f8ff; border-radius:10px; font-size:16px; font-weight:bold; margin-top:8px; }
+  .nota { font-size:13px; color:var(--gris); margin-top:6px; }
+  .aviso { background:var(--rojoBg); color:var(--rojo); border-radius:10px; padding:10px 12px; font-size:15px; margin-top:8px; display:none; }
+  footer { position:fixed; left:0; right:0; bottom:0; background:#fff; border-top:1px solid var(--borde); padding:10px 12px calc(10px + env(safe-area-inset-bottom)); z-index:5; }
+  footer button { width:100%; max-width:640px; display:block; margin:0 auto; min-height:56px; font-size:18px; font-weight:bold; color:#fff; background:linear-gradient(90deg,var(--naranja),var(--naranja2)); border:0; border-radius:12px; font-family:inherit; box-shadow:0 2px 6px rgba(244,72,0,.35); }
+  footer button:disabled { background:#9aa4b2; box-shadow:none; }
+  #ok { display:none; text-align:center; padding:40px 18px; }
+  #ok .logo { height:80px; margin:0 auto 18px; }
+  #ok .big { font-size:56px; }
+  #ok h2 { color:var(--azul); }
+  #ok h2 { margin:8px 0; }
+  #ok button { margin-top:20px; min-height:52px; padding:0 24px; font-size:17px; border-radius:12px; border:1.5px solid var(--azul); background:#fff; color:var(--azul); font-weight:bold; }
+  .oculto { display:none !important; }
+  .estado { display:flex; align-items:center; gap:8px; font-size:13px; padding:7px 14px; margin:8px -14px 0; background:#f5f7fb; color:var(--gris); border-top:1px solid #e6eaf2; }
+  .estado .pto { width:9px; height:9px; border-radius:50%; background:var(--verde); flex:none; }
+  .estado.off .pto { background:#c62828; }
+  .estado b { color:var(--azul); }
+  .estado button { margin-left:auto; border:0; background:var(--azul); color:#fff; border-radius:8px; padding:6px 10px; font-size:13px; font-family:inherit; }
+  #instalar { display:none; width:100%; max-width:640px; margin:0 auto 12px; min-height:48px; border:1.5px solid var(--azul); color:var(--azul); background:#fff; border-radius:12px; font-size:16px; font-weight:bold; font-family:inherit; }
+  #inicio { text-align:center; padding:50px 20px; color:var(--gris); }
+  #inicio .logo { height:80px; margin:0 auto 16px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="cab">
+    <img class="logo" src="logo.png" alt="Cielo Azul Cemento">
+    <div>
+      <h1 id="titulo">Check list diario</h1>
+      <div class="sub">FO-MA-03 · Antes de salir con el equipo · <b id="cuenta">0</b></div>
+    </div>
+  </div>
+  <div class="barra"><i id="prog"></i></div>
+  <div class="estado" id="estado"><span class="pto"></span><span id="estadoTxt">Con conexión</span><button type="button" id="btnSync" class="oculto">Enviar ahora</button></div>
+</header>
+<div id="inicio"><img class="logo" src="logo.png" alt="Cielo Azul Cemento"><div id="inicioTxt">Cargando…</div></div>
+
+<main id="form" class="oculto">
+  <button type="button" id="instalar">📲 Instalar la app en este celular</button>
+  <div class="card">
+    <label class="campo" for="chofer">Chofer (operador)</label>
+    <select id="chofer"></select>
+    <label class="campo" for="sucursal">Sucursal</label>
+    <select id="sucursal"></select>
+    <label class="campo">Equipo</label>
+    <div class="ops" id="equipo"></div>
+    <label class="campo" for="numero">Número de equipo</label>
+    <input type="text" id="numero" autocomplete="off" placeholder="Ej.: 15">
+    <label class="campo" for="horometro">Horómetro</label>
+    <input type="number" id="horometro" inputmode="decimal" placeholder="Solo números">
+  </div>
+
+  <div id="secciones"></div>
+
+  <div class="sec">PROBLEMAS ENCONTRADOS</div>
+  <div class="card">
+    <label class="campo" for="problemas">Tareas pendientes de mantenimiento</label>
+    <textarea id="problemas" placeholder="Contá qué problema hay (obligatorio si marcaste algo en rojo)"></textarea>
+
+    <label class="campo">¿Qué tan urgente es?</label>
+    <div class="urg" id="urgencia"></div>
+    <div class="nota">Obligatorio si marcaste algo en rojo.</div>
+
+    <label class="campo">Fotos (opcional)</label>
+    <div class="fotos" id="fotos"></div>
+    <button type="button" class="btnFoto" id="btnFoto">📷 Sacar o elegir foto</button>
+    <input type="file" id="archivo" accept="image/*" multiple class="oculto">
+    <div class="nota" id="notaFotos"></div>
+  </div>
+  <div class="aviso" id="aviso"></div>
+</main>
+
+<div id="ok">
+  <img class="logo" src="logo.png" alt="Cielo Azul Cemento">
+  <div class="big" id="okBig">✅</div>
+  <h2 id="okTit">¡Listo, gracias!</h2>
+  <div id="okTxt">Tu check list quedó registrado.</div>
+  <button type="button" onclick="location.reload()">Cargar otro check list</button>
+</div>
+
+<footer id="pie" class="oculto"><button type="button" id="enviar">Enviar check list</button></footer>
+
+<script src="cola.js"></script>
+<script>
+/* ---------- Arranque: configuración (choferes, ítems) guardada en el celular ---------- */
+let D = null;
+try { D = JSON.parse(localStorage.getItem('cl_config') || 'null'); } catch (e) {}
+function traerConfig() {
+  return fetch(API_URL + '?api=config', { redirect: 'follow' }).then(function (r) { return r.json(); }).then(function (c) {
+    if (c && c.secciones) { try { localStorage.setItem('cl_config', JSON.stringify(c)); } catch (e) {} }
+    return c;
+  });
+}
+if (D) { iniciarUI(); traerConfig().catch(function () {}); }
+else {
+  traerConfig().then(function (c) { D = c; iniciarUI(); }).catch(function () {
+    document.getElementById('inicioTxt').textContent = 'La primera vez hay que abrir la app con internet. Conectate y volvé a intentar.';
+  });
+}
+
+/* ---------- Instalación y service worker ---------- */
+let pedidoInstalar = null;
+window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); pedidoInstalar = e; document.getElementById('instalar').style.display = 'block'; });
+document.getElementById('instalar').onclick = function () {
+  if (!pedidoInstalar) return;
+  pedidoInstalar.prompt(); pedidoInstalar.userChoice.finally(function () { pedidoInstalar = null; document.getElementById('instalar').style.display = 'none'; });
+};
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(function () {});
+  navigator.serviceWorker.addEventListener('message', function (e) { if (e.data && e.data.tipo === 'sync') actualizarEstado(); });
+}
+
+/* ---------- Estado de conexión y pendientes ---------- */
+function actualizarEstado() {
+  return Cola.todos().then(function (l) {
+    const on = navigator.onLine, n = l.length, el = document.getElementById('estado');
+    el.classList.toggle('off', !on);
+    const err = l.filter(function (x) { return x.error && x.error !== 'sin conexión'; })[0];
+    document.getElementById('estadoTxt').innerHTML = (on ? 'Con conexión' : 'Sin conexión') +
+      (n ? ' · <b>' + n + ' check list pendiente' + (n > 1 ? 's' : '') + ' de envío</b>' : ' · todo enviado') +
+      (err ? ' · ⚠️ ' + err.error.replace(/[<>&]/g, '') : '');
+    document.getElementById('btnSync').classList.toggle('oculto', !(n && on));
+  }).catch(function () {});
+}
+function sincronizar() {
+  if (!navigator.onLine) return actualizarEstado();
+  return Cola.enviarPendientes().then(actualizarEstado, actualizarEstado);
+}
+document.getElementById('btnSync').onclick = sincronizar;
+window.addEventListener('online', sincronizar);
+window.addEventListener('offline', actualizarEstado);
+document.addEventListener('visibilitychange', function () { if (!document.hidden) sincronizar(); });
+setInterval(sincronizar, 60000);
+sincronizar();
+
+function iniciarUI() {
+document.getElementById('inicio').classList.add('oculto');
+document.getElementById('form').classList.remove('oculto');
+document.getElementById('pie').classList.remove('oculto');
+const ITEMS = [];
+D.secciones.forEach(function (s) { s[1].forEach(function (it) { ITEMS.push(it); }); });
+const resp = new Array(ITEMS.length).fill(null);
+let equipo = '', urgencia = '';
+const fotos = [];
+const $ = function (id) { return document.getElementById(id); };
+function guardarLocal(k, v) { try { localStorage.setItem('cl_' + k, v); } catch (e) {} }
+function leerLocal(k) { try { return localStorage.getItem('cl_' + k) || ''; } catch (e) { return ''; } }
+function claseOp(op) { return D.malos.indexOf(op) !== -1 ? 'mal' : (op === 'No aplica' ? 'na' : 'bien'); }
+
+$('titulo').textContent = 'Check list diario';
+
+// Encabezado
+function llenarSelect(sel, lista, ph) {
+  sel.innerHTML = '';
+  const o = document.createElement('option'); o.value = ''; o.textContent = ph; sel.appendChild(o);
+  lista.forEach(function (v) { const x = document.createElement('option'); x.value = v; x.textContent = v; sel.appendChild(x); });
+}
+llenarSelect($('chofer'), D.choferes.map(function (c) { return c.n; }), D.choferes.length ? 'Elegí tu nombre' : '(todavía no hay choferes cargados)');
+llenarSelect($('sucursal'), D.sucursales, 'Elegí la sucursal');
+['chofer', 'sucursal', 'numero'].forEach(function (k) {
+  const v = leerLocal(k); if (v) $(k).value = v;
+  $(k).addEventListener('change', function () { guardarLocal(k, $(k).value); progreso(); });
+});
+$('horometro').addEventListener('input', progreso);
+// Al elegir el chofer se completan su sucursal, equipo y número habitual (se pueden cambiar)
+$('chofer').addEventListener('change', function () {
+  const c = D.choferes.filter(function (x) { return x.n === $('chofer').value; })[0];
+  if (!c) return;
+  if (c.s && D.sucursales.indexOf(c.s) !== -1) { $('sucursal').value = c.s; guardarLocal('sucursal', c.s); }
+  if (c.m) { $('numero').value = c.m; guardarLocal('numero', c.m); }
+  if (c.e) { equipo = c.e; guardarLocal('equipo', c.e); pintarEquipo(); }
+});
+['Mixer', 'Bomba'].forEach(function (op) {
+  const b = document.createElement('button'); b.type = 'button'; b.textContent = op;
+  b.onclick = function () { equipo = op; guardarLocal('equipo', op); pintarEquipo(); progreso(); };
+  $('equipo').appendChild(b);
+});
+function pintarEquipo() { [].forEach.call($('equipo').children, function (b) { b.className = b.textContent === equipo ? 'sel azul' : ''; }); }
+equipo = leerLocal('equipo'); pintarEquipo();
+
+// Ítems
+let idx = 0;
+D.secciones.forEach(function (s) {
+  const h = document.createElement('div'); h.className = 'sec'; h.textContent = s[0]; $('secciones').appendChild(h);
+  const card = document.createElement('div'); card.className = 'card';
+  s[1].forEach(function (it) {
+    const i = idx++;
+    const div = document.createElement('div'); div.className = 'item'; div.id = 'it' + i;
+    const t = document.createElement('div'); t.className = 't'; t.textContent = it[0]; div.appendChild(t);
+    if (it[1]) { const a = document.createElement('div'); a.className = 'a'; a.textContent = it[1]; div.appendChild(a); }
+    const ops = document.createElement('div'); ops.className = 'ops';
+    it[2].forEach(function (op) {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = op;
+      b.onclick = function () {
+        resp[i] = op; div.classList.remove('falta');
+        [].forEach.call(ops.children, function (x) { x.className = x.textContent === op ? 'sel ' + claseOp(op) : ''; });
+        progreso();
+      };
+      ops.appendChild(b);
+    });
+    div.appendChild(ops); card.appendChild(div);
+  });
+  $('secciones').appendChild(card);
+});
+
+// Urgencia
+D.urgencias.forEach(function (u) {
+  const b = document.createElement('button'); b.type = 'button'; b.textContent = u;
+  b.onclick = function () {
+    urgencia = (urgencia === u) ? '' : u;
+    [].forEach.call($('urgencia').children, function (x) { x.className = x.textContent === urgencia ? 'sel' : ''; });
+  };
+  $('urgencia').appendChild(b);
+});
+
+// Fotos: se achican en el celular antes de enviar
+$('notaFotos').textContent = 'Hasta ' + D.maxFotos + ' fotos. Sacala de cerca y con buena luz.';
+$('btnFoto').onclick = function () { if (fotos.length < D.maxFotos) $('archivo').click(); };
+$('archivo').onchange = function (e) {
+  const files = [].slice.call(e.target.files || [], 0, D.maxFotos - fotos.length);
+  files.forEach(function (f) { achicar(f, function (url) { fotos.push(url); pintarFotos(); }); });
+  e.target.value = '';
+};
+function achicar(file, cb) {
+  const r = new FileReader();
+  r.onload = function () {
+    const img = new Image();
+    img.onload = function () {
+      const max = 1280, k = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      cb(c.toDataURL('image/jpeg', 0.7));
+    };
+    img.onerror = function () { mostrarAviso('No se pudo leer esa foto. Probá con otra.'); };
+    img.src = r.result;
+  };
+  r.readAsDataURL(file);
+}
+function pintarFotos() {
+  $('fotos').innerHTML = '';
+  fotos.forEach(function (u, i) {
+    const d = document.createElement('div'); d.className = 'f';
+    const im = document.createElement('img'); im.src = u; d.appendChild(im);
+    const x = document.createElement('button'); x.type = 'button'; x.textContent = '×'; x.setAttribute('aria-label', 'Quitar foto');
+    x.onclick = function () { fotos.splice(i, 1); pintarFotos(); };
+    d.appendChild(x); $('fotos').appendChild(d);
+  });
+  $('btnFoto').classList.toggle('oculto', fotos.length >= D.maxFotos);
+}
+
+// Progreso
+function progreso() {
+  const hechos = resp.filter(function (v) { return v; }).length;
+  $('cuenta').textContent = hechos + ' de ' + ITEMS.length + ' ítems';
+  $('prog').style.width = Math.round(hechos / ITEMS.length * 100) + '%';
+}
+progreso();
+
+function mostrarAviso(t) { const a = $('aviso'); a.textContent = t; a.style.display = t ? 'block' : 'none'; if (t) a.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+
+// Enviar
+$('enviar').onclick = function () {
+  mostrarAviso('');
+  const d = {
+    chofer: $('chofer').value, sucursal: $('sucursal').value, equipo: equipo,
+    numero: $('numero').value.trim(), horometro: $('horometro').value.trim(),
+    respuestas: resp, problemas: $('problemas').value.trim(), urgencia: urgencia, fotos: fotos
+  };
+  if (!d.chofer) return mostrarAviso('Elegí tu nombre.');
+  if (!d.sucursal) return mostrarAviso('Elegí la sucursal.');
+  if (!d.equipo) return mostrarAviso('Marcá si es Mixer o Bomba.');
+  if (!d.numero) return mostrarAviso('Escribí el número de equipo.');
+  if (!d.horometro) return mostrarAviso('Escribí el horómetro.');
+  const faltan = [];
+  resp.forEach(function (v, i) { if (!v) { faltan.push(i); $('it' + i).classList.add('falta'); } });
+  if (faltan.length) { mostrarAviso('Faltan ' + faltan.length + ' ítem(s) por marcar (en rojo).'); $('it' + faltan[0]).scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+  const hayMal = resp.some(function (v) { return D.malos.indexOf(v) !== -1; });
+  if (hayMal && !d.problemas) return mostrarAviso('Marcaste algo en rojo: contá qué problema hay en "Problemas encontrados".');
+  if (hayMal && !d.urgencia) return mostrarAviso('Marcaste algo en rojo: indicá qué tan urgente es.');
+
+  const btn = $('enviar'); btn.disabled = true; btn.textContent = 'Guardando…';
+  d.id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(36).slice(2));
+  d.fecha = new Date().toISOString();
+  d.origen = 'app';
+  const nMal = resp.filter(function (v) { return D.malos.indexOf(v) !== -1; }).length;
+  // 1) Siempre se guarda primero en el celular
+  Cola.guardar(d).then(function () {
+    if ('serviceWorker' in navigator && 'SyncManager' in window) {
+      navigator.serviceWorker.ready.then(function (reg) { return reg.sync.register('enviar-checklist'); }).catch(function () {});
+    }
+    // 2) Si hay internet, se intenta mandar ya (máximo 25 s de espera)
+    if (!navigator.onLine) return { pendientes: 1 };
+    btn.textContent = fotos.length ? 'Enviando fotos…' : 'Enviando…';
+    return Promise.race([Cola.enviarPendientes(), new Promise(function (ok) { setTimeout(function () { ok({ pendientes: 1 }); }, 25000); })]);
+  }).then(function (r) {
+    return Cola.todos().then(function (l) {
+      const pendiente = l.some(function (x) { return x.id === d.id; });
+      $('form').classList.add('oculto'); $('pie').classList.add('oculto'); $('ok').style.display = 'block';
+      if (pendiente) {
+        $('okBig').textContent = '📶';
+        $('okTit').textContent = 'Guardado en el celular';
+        $('okTxt').textContent = 'No hay señal en este momento. Tu check list se va a enviar solo cuando el celular tenga internet. No hace falta cargarlo de nuevo.';
+      } else {
+        $('okTxt').textContent = nMal ? 'Quedó registrado y avisamos de los ' + nMal + ' problema(s) a mantenimiento.' : 'Tu check list quedó registrado. ¡Buen viaje!';
+      }
+      window.scrollTo(0, 0); actualizarEstado();
+    });
+  }).catch(function (err) {
+    btn.disabled = false; btn.textContent = 'Enviar check list';
+    mostrarAviso('No se pudo guardar en el celular: ' + (err && err.message ? err.message : err) + '. Probá de nuevo.');
+  });
+};
+}
+</script>
+</body>
+</html>
