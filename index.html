@@ -59,6 +59,16 @@
   #ok h2 { margin:8px 0; }
   #ok button { margin-top:20px; min-height:52px; padding:0 24px; font-size:17px; border-radius:12px; border:1.5px solid var(--azul); background:#fff; color:var(--azul); font-weight:bold; }
   .oculto { display:none !important; }
+  #novedades { border-left:5px solid var(--naranja); }
+  #novedades .nt { font-weight:bold; color:var(--azul); margin-bottom:4px; }
+  .nov { padding:10px 0; border-bottom:1px solid #eef0f3; font-size:15px; }
+  .nov:last-child { border-bottom:0; }
+  .nov .nf { font-size:13px; color:var(--gris); }
+  .nov .ne { display:inline-block; border-radius:999px; padding:2px 9px; font-size:12.5px; font-weight:bold; margin-left:6px; }
+  .nov .ne.Pendiente { background:var(--rojoBg); color:var(--rojo); }
+  .nov .ne.En { background:#fff4cc; color:#8a6d00; }
+  .nov .ne.Resuelto { background:var(--verdeBg); color:var(--verde); }
+  .nov .no { margin-top:6px; background:#f5f8ff; border-radius:8px; padding:7px 9px; }
   .estado { display:flex; align-items:center; gap:8px; font-size:13px; padding:7px 14px; margin:8px -14px 0; background:#f5f7fb; color:var(--gris); border-top:1px solid #e6eaf2; }
   .estado .pto { width:9px; height:9px; border-radius:50%; background:var(--verde); flex:none; }
   .estado.off .pto { background:#c62828; }
@@ -97,6 +107,7 @@
     <label class="campo" for="horometro">Horómetro</label>
     <input type="number" id="horometro" inputmode="decimal" placeholder="Solo números">
   </div>
+  <div class="card oculto" id="novedades"></div>
 
   <div id="secciones"></div>
 
@@ -225,6 +236,28 @@ $('chofer').addEventListener('change', function () {
 });
 function pintarEquipo() { [].forEach.call($('equipo').children, function (b) { b.className = b.textContent === equipo ? 'sel azul' : ''; }); }
 equipo = leerLocal('equipo'); pintarEquipo();
+
+// Novedades de mantenimiento sobre los problemas que reportó este chofer / este equipo
+function mostrarNovedades() {
+  const ch = $('chofer').value, num = $('numero').value.trim().toUpperCase(), box = $('novedades');
+  const lista = (D.novedades || []).filter(function (n) { return (num && String(n.n).trim().toUpperCase() === num) || (ch && n.c === ch); }).reverse();
+  box.innerHTML = '';
+  if (!lista.length) { box.classList.add('oculto'); return; }
+  box.classList.remove('oculto');
+  const t = document.createElement('div'); t.className = 'nt'; t.textContent = '🔧 Novedades de mantenimiento'; box.appendChild(t);
+  lista.slice(0, 6).forEach(function (n) {
+    const d = document.createElement('div'); d.className = 'nov';
+    const f = document.createElement('div'); f.className = 'nf'; f.textContent = n.f + ' · equipo ' + n.n + (n.c !== ch ? ' · ' + n.c : '');
+    const e = document.createElement('span'); e.className = 'ne ' + String(n.e).split(' ')[0]; e.textContent = n.e === 'Resuelto' ? '✅ Resuelto' : (n.e === 'En proceso' ? '🔧 En proceso' : '⏳ Pendiente');
+    f.appendChild(e); d.appendChild(f);
+    const p = document.createElement('div'); p.textContent = n.i + (n.p ? ' — ' + n.p : ''); d.appendChild(p);
+    if (n.o) { const o = document.createElement('div'); o.className = 'no'; o.textContent = 'Mantenimiento' + (n.a ? ' (' + n.a + ')' : '') + ': ' + n.o; d.appendChild(o); }
+    box.appendChild(d);
+  });
+}
+$('chofer').addEventListener('change', mostrarNovedades);
+$('numero').addEventListener('change', mostrarNovedades);
+mostrarNovedades();
 
 // Ítems
 let idx = 0;
