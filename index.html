@@ -69,6 +69,18 @@
   .nov .ne.En { background:#fff4cc; color:#8a6d00; }
   .nov .ne.Resuelto { background:var(--verdeBg); color:var(--verde); }
   .nov .no { margin-top:6px; background:#f5f8ff; border-radius:8px; padding:7px 9px; }
+  .nov .nh .no { margin-top:6px; }
+  .nov .no.ch { background:#fff3ec; }
+  .resp-abrir { margin-top:8px; min-height:40px; padding:0 14px; border-radius:10px; border:1.5px solid var(--azul); background:#fff; color:var(--azul); font-weight:bold; font-size:15px; font-family:inherit; }
+  .resp { margin-top:8px; }
+  .resp-ops { display:flex; gap:6px; }
+  .resp-ops button { flex:1; min-height:44px; border:1.5px solid var(--borde); background:#fff; border-radius:10px; font-size:14.5px; font-family:inherit; color:#1d1d1f; }
+  .resp-ops button.sel.bien { background:var(--verdeBg); border-color:var(--verde); color:var(--verde); font-weight:bold; }
+  .resp-ops button.sel.sigue { background:var(--rojoBg); border-color:var(--rojo); color:var(--rojo); font-weight:bold; }
+  .resp textarea { width:100%; margin-top:8px; min-height:60px; font-size:16px; padding:10px; border:1.5px solid var(--borde); border-radius:10px; font-family:inherit; }
+  .resp-env { margin-top:8px; width:100%; min-height:46px; border:0; border-radius:10px; background:var(--naranja); color:#fff; font-weight:bold; font-size:16px; font-family:inherit; }
+  .resp-env:disabled { background:#9aa4b2; }
+  .resp-msg { font-size:14px; color:var(--gris); margin-top:6px; }
   .estado { display:flex; align-items:center; gap:8px; font-size:13px; padding:7px 14px; margin:8px -14px 0; background:#f5f7fb; color:var(--gris); border-top:1px solid #e6eaf2; }
   .estado .pto { width:9px; height:9px; border-radius:50%; background:var(--verde); flex:none; }
   .estado.off .pto { background:#c62828; }
@@ -176,7 +188,7 @@ function actualizarEstado() {
     el.classList.toggle('off', !on);
     const err = l.filter(function (x) { return x.error && x.error !== 'sin conexión'; })[0];
     document.getElementById('estadoTxt').innerHTML = (on ? 'Con conexión' : 'Sin conexión') +
-      (n ? ' · <b>' + n + ' check list pendiente' + (n > 1 ? 's' : '') + ' de envío</b>' : ' · todo enviado') +
+      (n ? ' · <b>' + n + ' envío' + (n > 1 ? 's' : '') + ' pendiente' + (n > 1 ? 's' : '') + '</b>' : ' · todo enviado') +
       (err ? ' · ⚠️ ' + err.error.replace(/[<>&]/g, '') : '');
     document.getElementById('btnSync').classList.toggle('oculto', !(n && on));
   }).catch(function () {});
@@ -245,16 +257,77 @@ function mostrarNovedades() {
   if (!lista.length) { box.classList.add('oculto'); return; }
   box.classList.remove('oculto');
   const t = document.createElement('div'); t.className = 'nt'; t.textContent = '🔧 Novedades de mantenimiento'; box.appendChild(t);
-  lista.slice(0, 6).forEach(function (n) {
-    const d = document.createElement('div'); d.className = 'nov';
-    const f = document.createElement('div'); f.className = 'nf'; f.textContent = n.f + ' · equipo ' + n.n + (n.c !== ch ? ' · ' + n.c : '');
-    const e = document.createElement('span'); e.className = 'ne ' + String(n.e).split(' ')[0]; e.textContent = n.e === 'Resuelto' ? '✅ Resuelto' : (n.e === 'En proceso' ? '🔧 En proceso' : '⏳ Pendiente');
-    f.appendChild(e); d.appendChild(f);
-    const p = document.createElement('div'); p.textContent = n.i + (n.p ? ' — ' + n.p : ''); d.appendChild(p);
-    if (n.o) { const o = document.createElement('div'); o.className = 'no'; o.textContent = 'Mantenimiento' + (n.a ? ' (' + n.a + ')' : '') + ': ' + n.o; d.appendChild(o); }
-    box.appendChild(d);
-  });
+  lista.slice(0, 6).forEach(function (n) { box.appendChild(novedad(n)); });
 }
+function nuevo(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+function novedad(n) {
+  const ch = $('chofer').value;
+  const d = nuevo('div', 'nov');
+  const f = nuevo('div', 'nf', n.f + ' · equipo ' + n.n + (n.c !== ch ? ' · ' + n.c : ''));
+  const e = nuevo('span', 'ne ' + String(n.e).split(' ')[0], n.e === 'Resuelto' ? '✅ Resuelto' : (n.e === 'En proceso' ? '🔧 En proceso' : '⏳ Pendiente'));
+  f.appendChild(e); d.appendChild(f);
+  d.appendChild(nuevo('div', '', n.i + (n.p ? ' — ' + n.p : '')));
+  // Historial de seguimiento (mantenimiento y choferes)
+  const hs = (n.h && n.h.length) ? n.h : (n.o ? [{ f: n.a, q: 'Mantenimiento', n: '', t: n.o }] : []);
+  const hb = nuevo('div', 'nh');
+  function linea(h) {
+    const l = nuevo('div', 'no' + (h.q === 'Chofer' ? ' ch' : ''));
+    l.appendChild(nuevo('b', '', (h.q === 'Chofer' ? '🚚 ' + (h.n || 'Chofer') : '🔧 Mantenimiento' + (h.n ? ' (' + h.n + ')' : '')) + (h.f ? ' · ' + h.f : '') + ': '));
+    l.appendChild(document.createTextNode(h.t || ('cambió a ' + h.e)));
+    hb.appendChild(l);
+  }
+  hs.forEach(linea);
+  d.appendChild(hb);
+  if (!n.k) return d;
+  // Responder
+  const abrir = nuevo('button', 'resp-abrir', '💬 Responder'); abrir.type = 'button';
+  const form = nuevo('div', 'resp oculto');
+  let sigue = '';
+  const ops = nuevo('div', 'resp-ops');
+  [['bien', '✅ Ya quedó bien'], ['sigue', '⚠️ Sigue el problema']].forEach(function (o) {
+    const b = nuevo('button', '', o[1]); b.type = 'button';
+    b.onclick = function () { sigue = sigue === o[0] ? '' : o[0]; [].forEach.call(ops.children, function (x, i) { x.className = (i === 0 ? 'bien' : 'sigue') === sigue ? 'sel ' + sigue : ''; }); };
+    ops.appendChild(b);
+  });
+  const ta = nuevo('textarea'); ta.placeholder = 'Comentario para mantenimiento (opcional)';
+  const env = nuevo('button', 'resp-env', 'Enviar respuesta'); env.type = 'button';
+  const msg = nuevo('div', 'resp-msg');
+  abrir.onclick = function () { form.classList.toggle('oculto'); };
+  env.onclick = function () {
+    const chofer = $('chofer').value;
+    if (!chofer) { msg.textContent = 'Primero elegí tu nombre arriba.'; return; }
+    if (!sigue && !ta.value.trim()) { msg.textContent = 'Elegí una opción o escribí un comentario.'; return; }
+    const r = { tipo: 'respuesta', id: 'R' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), fecha: new Date().toISOString(),
+                envio: n.k, chofer: chofer, sigue: sigue, texto: ta.value.trim() };
+    env.disabled = true; env.textContent = 'Enviando…';
+    enviarRespuesta(r, function (err, res) {
+      env.disabled = false; env.textContent = 'Enviar respuesta';
+      if (err) { msg.textContent = '⚠️ ' + err; return; }
+      const h = { f: 'ahora', q: 'Chofer', n: chofer, e: n.e, t: [sigue === 'sigue' ? '⚠️ Sigue el problema' : (sigue === 'bien' ? '✅ Quedó bien' : ''), r.texto].filter(String).join(' — ') };
+      (n.h = n.h || []).push(h); linea(h);
+      if (res && res.estado && res.estado !== n.e) { n.e = res.estado; e.className = 'ne ' + n.e.split(' ')[0]; e.textContent = '⏳ Pendiente'; }
+      ta.value = ''; sigue = ''; [].forEach.call(ops.children, function (x) { x.className = ''; });
+      form.classList.add('oculto');
+      msg.textContent = res && res.enCola ? '📶 Respuesta guardada, se envía cuando haya señal.' : '✔ Respuesta enviada a mantenimiento.';
+      guardarNovedades();
+    });
+  };
+  form.appendChild(ops); form.appendChild(ta); form.appendChild(env);
+  d.appendChild(abrir); d.appendChild(form); d.appendChild(msg);
+  return d;
+}
+function enviarRespuesta(r, cb) {
+  Cola.guardar(r).then(function () {
+    if (!navigator.onLine) return null;
+    return Promise.race([Cola.enviarPendientes(), new Promise(function (ok) { setTimeout(ok, 20000); })]);
+  }).then(function () { return Cola.todos(); }).then(function (l) {
+    const yo = l.filter(function (x) { return x.id === r.id; })[0];
+    actualizarEstado();
+    if (yo && yo.error && yo.error !== 'sin conexión') { Cola.borrar(r.id).then(actualizarEstado); cb(yo.error); return; }
+    cb(null, { enCola: !!yo });
+  }).catch(function () { cb(null, { enCola: true }); });
+}
+function guardarNovedades() { try { localStorage.setItem('cl_config', JSON.stringify(D)); } catch (e) {} }
 $('chofer').addEventListener('change', mostrarNovedades);
 $('numero').addEventListener('change', mostrarNovedades);
 mostrarNovedades();
